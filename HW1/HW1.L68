@@ -1,0 +1,53 @@
+00000400 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 4/14/2016 5:15:53 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :HW1 - Question 3
+00000000                             3  * Written by : Tyler Quayle
+00000000                             4  * Date       :April 14, 2016
+00000000                             5  * Description:Question 3 of HW1, UW:B CSS422 Spring 2016
+00000000                             6  *-----------------------------------------------------------
+00000000                             7      
+00000000  =00004000                  8  addr1     EQU     $4000        
+00000000  =00004001                  9  addr2     EQU     $4001 
+00000000  =0000B7FF                 10  data2     EQU     $B7FF 
+00000000  =00005555                 11  data3     EQU     $5555 
+00000000  =00000000                 12  data4     EQU     $0000 
+00000000  =00001246                 13  data5     EQU     4678 
+00000000  =0000004F                 14  data6     EQU     %01001111 
+00000000  =00000017                 15  data7     EQU     %00010111 
+00000400                            16      ORG    $400
+00000400                            17  START:                  ; first instruction of program
+00000400  303C B7FF                 18      MOVE.W #data2, D0   *Load D0
+00000404  123C 004F                 19      MOVE.B #data6, D1   *Load D1
+00000408  143C 0017                 20      MOVE.B #data7, D2   *Load D2
+0000040C  363C 5555                 21      MOVE.W #data3, D3   *Load D3
+00000410  307C 4000                 22      MOVEA.W #addr1, A0  *Load address register 
+00000414  10C1                      23      MOVE.B  D1, (A0)+   *Transfer Byte To Memory
+00000416  10C2                      24      MOVE.B  D2, (A0)+   *Transfer second byte
+00000418  327C 4000                 25      MOVEA.W #addr1, A1  *Load Address
+0000041C  C751                      26      AND.W D3,(A1)       *Logical And
+0000041E  4EF8 0400                 27      JMP START           *Loop back to START
+00000422  FFFF FFFF                 28      SIMHALT             ; halt simulator
+00000426                            29  
+00000426                            30  * Put variables and constants here
+00000426                            31  
+00000426                            32      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ADDR1               4000
+ADDR2               4001
+DATA2               B7FF
+DATA3               5555
+DATA4               0
+DATA5               1246
+DATA6               4F
+DATA7               17
+START               400

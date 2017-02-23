@@ -1,0 +1,92 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 4/22/2016 9:04:10 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :
+00000000                             3  * Written by :
+00000000                             4  * Date       :
+00000000                             5  * Description:
+00000000                             6  *-----------------------------------------------------------
+00000000  =00000600                  7  SignBit     EQU $600
+00000000  =00000620                  8  Exponent    EQU $620
+00000000  =00000630                  9  Mantissa    EQU $630
+00001000                            10      ORG    $1000
+00001000                            11  START:                  ; first instruction of program
+00001000  283C C0680000             12      MOVE.L  #$C0680000, D4
+00001006                            13  FINDSIGN
+00001006  2604                      14      MOVE.L  D4, D3
+00001008  143C 001F                 15      MOVE.B  #31, D2
+0000100C  E5AB                      16      LSL.L   D2, D3
+0000100E  11FC 002D 0600            17      MOVE.B  #$2D, SignBit
+00001014  B63C 0001                 18      CMP.B   #$1, D3
+00001018  6700 0008                 19      BEQ     FINDEXP
+0000101C  11FC 002B 0600            20      MOVE.B  #$2B, SignBit
+00001022                            21  FINDEXP
+00001022  2604                      22      MOVE.L  D4, D3
+00001024  0883 001F                 23      BCLR.L  #31, D3 * Clear MSB
+00001028  143C 0017                 24      MOVE.B  #23, D2
+0000102C  E4AB                      25      LSR.L   D2, D3
+0000102E  31C3 0620                 26      MOVE.W  D3, Exponent
+00001032                            27  FINDMAN
+00001032  2604                      28      MOVE.L  D4, D3
+00001034  143C 0009                 29      MOVE.B  #9, D2
+00001038  E5AB                      30      LSL.L   D2, D3
+0000103A  E4AB                      31      LSR.L   D2, D3
+0000103C  143C 0013                 32      MOVE.B  #19, D2
+00001040  E4AB                      33      LSR.L   D2, D3
+00001042  21C3 0630                 34      MOVE.L  D3, Mantissa
+00001046                            35      
+00001046                            36  PRINT
+00001046  43F9 000010CB             37      LEA     OutSig, A1
+0000104C  103C 000E                 38      MOVE.B  #14, D0
+00001050  4E4F                      39      TRAP    #15
+00001052  1238 0600                 40      MOVE.B  SignBit, D1
+00001056  103C 0006                 41      MOVE.B  #6, D0
+0000105A  4E4F                      42      TRAP    #15
+0000105C  43F9 000010D8             43      LEA     OutExp, A1
+00001062  103C 000E                 44      MOVE.B  #14, D0
+00001066  4E4F                      45      TRAP    #15
+00001068  3238 0620                 46      MOVE.W  Exponent, D1
+0000106C  103C 0003                 47      MOVE.B  #3, D0
+00001070  4E4F                      48      TRAP    #15
+00001072  43F9 000010E5             49      LEA     OutMan, A1
+00001078  103C 000E                 50      MOVE.B  #14, D0
+0000107C  4E4F                      51      TRAP    #15
+0000107E  3203                      52      MOVE.W  D3, D1
+00001080  103C 0003                 53      MOVE.B  #3, D0
+00001084  4E4F                      54      TRAP    #15
+00001086                            55  * Put program code here
+00001086                            56  
+00001086  FFFF FFFF                 57      SIMHALT             ; halt simulator
+0000108A  =0000000D                 58  CR  EQU $0D             ;ASCII code for Carriage Return
+0000108A  =0000000A                 59  LF  EQU $0A             ;ASCII code for Line Feed
+0000108A= 0D 50 6C 65 61 73 ...     60  InMsg DC.B CR,'Please enter IEEE 32-bit floating point number in hexadecimal: ' ,0
+000010CB= 0D 0A 53 69 67 6E ...     61  OutSig DC.B CR, LF,'Sign Bit: ',0
+000010D8= 0D 0A 45 78 70 6F ...     62  OutExp  DC.B CR, LF,'Exponent: ',0
+000010E5= 0D 0A 4D 61 6E 74 ...     63  OutMan  DC.B CR, LF,'Mantissa: ',0
+000010F2                            64  * Put variables and constants here
+000010F2                            65  
+000010F2                            66      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+CR                  D
+EXPONENT            620
+FINDEXP             1022
+FINDMAN             1032
+FINDSIGN            1006
+INMSG               108A
+LF                  A
+MANTISSA            630
+OUTEXP              10D8
+OUTMAN              10E5
+OUTSIG              10CB
+PRINT               1046
+SIGNBIT             600
+START               1000

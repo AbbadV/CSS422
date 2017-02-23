@@ -1,0 +1,57 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 4/14/2016 8:53:58 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      :HW1 - Question 4.3
+00000000                             3  * Written by :Tyler Quayle
+00000000                             4  * Date       :April 14, 2016
+00000000                             5  * Description:Add -102 and -87 as Hexadecimals to Address $5000
+00000000                             6  *-----------------------------------------------------------
+00000000  =0000FF9A                  7  data1   EQU $FF9A   *-102
+00000000  =0000FFA9                  8  data2   EQU $FFA9   *-87
+00000000  =00005000                  9  addr1   EQU $5000
+00001000                            10      ORG    $1000
+00001000                            11  START:                  ; first instruction of program
+00001000                            12  
+00001000  323C FF9A                 13      MOVE.W  #data1, D1  *Load data1(FF9A) into D1
+00001004  343C FFA9                 14      MOVE.W  #data2, D2  *Load data2(FFA9) into D2
+00001008  D242                      15      ADD.W   D2, D1      *ADD D1 and D2, put result in D2
+0000100A  6500 0012                 16      BCS OVERFLOWERR     *If carry flag is set, branch to OVERFLOWERR
+0000100E                            17  DISPLAY    
+0000100E  327C 5000                 18      MOVEA.W #addr1, A1  *Load addr1(5000) into A1    
+00001012  3281                      19      MOVE.W  D1, (A1)    *Move result into A0 ($5000) 
+00001014  103C 0003                 20      MOVE.B  #3, D0      *Task 3 for Trap 15 (displays as decimal)
+00001018  4E4F                      21      TRAP    #15         *Display whatever is in A1            
+0000101A                            22      
+0000101A  FFFF FFFF                 23      SIMHALT             ; halt simulator
+0000101E                            24  
+0000101E                            25  OVERFLOWERR *OVER FLOW ERROR FOUND
+0000101E  43F9 0000102E             26      LEA overflmsg, A1   *Give Address A1 the Error msg
+00001024  103C 000E                 27      MOVE.B  #14, D0     *Task 14 for TRAP 15
+00001028  4E4F                      28      TRAP #15            *Display Error Msg
+0000102A  4EF8 100E                 29      JMP DISPLAY         *Jump back up and display result
+0000102E                            30  
+0000102E  =0000000D                 31  CR  EQU $0D             ;ASCII code for Carriage Return
+0000102E  =0000000A                 32  LF  EQU $0A             ;ASCII code for Line Feed
+0000102E= 4F 76 65 72 66 6C ...     33  overflmsg DC.B 'Overflow Occured',CR,LF,0
+00001041                            34  * Put variables and constants here
+00001041                            35  
+00001041                            36      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ADDR1               5000
+CR                  D
+DATA1               FF9A
+DATA2               FFA9
+DISPLAY             100E
+LF                  A
+OVERFLMSG           102E
+OVERFLOWERR         101E
+START               1000

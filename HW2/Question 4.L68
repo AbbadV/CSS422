@@ -1,0 +1,123 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 4/23/2016 5:34:39 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : Pattern Finding and Cumulative Program
+00000000                             3  * Written by : Tyler Quayle 
+00000000                             4  * Date       : April 21, 2016
+00000000                             5  * Description: Question 4, in HW2. Find byte in memory, then find SUM of 256 bytes
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  * FOLLOWING TWO VARIABLES ARE USED TO HARD CODE THE BYTE TO FIND,
+00000000                             8  * OTHERWISE WOULD 'SUCCEED', ON FIRST COMPARE SINCE ALL MEMORY DEFAULTS
+00000000                             9  * TO 'FF'
+00000000  =00000007                 10  NumTo   EQU $07     * Number hardcoded to find
+00000000  =00006553                 11  NumLoc  EQU $6553   * Address between $6k-$8k, where variable is 'Hidden'
+00000000                            12  ************************************************************
+00000000  =0000A000                 13  CompA       EQU $A000   * The memory location that is being compared against
+00000000  =00006000                 14  StarA       EQU $6000   * Starting Address to search From
+00000000  =00008000                 15  EndA        EQU $8000   * End Address to search thru
+00000000                            16  
+00000000  =000010F0                 17  Addr1       EQU $10F0   * Defined in HW2, used to track the 'successful' find of matching data 
+00000000  =000010F4                 18  Addsum      EQU $10F4   * Defined in HW2, Used to sum 256 consecutive memory addresses
+00000000  =000010F8                 19  CarryBit    EQU $10F8     * Defined in HW2, Stores carrybit from ADD Addsum
+00000000                            20  
+00001000                            21      ORG    $1000
+00001000                            22  START:  
+00001000  287C 00006000             23          MOVEA.L     #$6000, A4      * Assign address $6000 (start) to A4
+00001006  267C 0000A000             24          MOVEA.L     #CompA, A3      * Assign Address $A300 (compare) to A3
+0000100C  11FC 0007 6553            25          MOVE.B      #NumTo, NumLoc  * Hardcode number for loop to find
+00001012  13FC 0007 0000A000        26          MOVE.B      #NumTo, CompA   * Hardcode number that loop to find to A300 (A4/CompA)
+0000101A  1013                      27          MOVE.B      (A3),D0         * Give D0 the byte data in A3
+0000101C  4278 10F4                 28          CLR.W       Addsum          * Set 4 Bytes to Zero at Addsum address. Otherwise starts summing at FFFF
+00001020  4278 10F8                 29          CLR.W       CarryBit        * Set 4 Bytes to Zero, So carry bit is represent correctly. Otherwise is FFFF
+00001024                            30  SEARCHLOOP     
+00001024  524C                      31          ADDA.W      #$1,A4          * Increment the Address of A4 by $1
+00001026  1214                      32          MOVE.B      (A4),D1         * Give D1 the current Byte A4 is on in the loop
+00001028  B200                      33          CMP.B       D0, D1          * Compare the byte of data in D0 ($A300) and D1 (A4 Current Byte)    
+0000102A  6700 000E                 34          BEQ         FOUND           * If D1,D0 Equal, go to find
+0000102E  B9FC 00008000             35          CMPA.L      #EndA, A4       * Compare current A4 Address to end address
+00001034  6700 000C                 36          BEQ         ERROR           * If EndA hit, jump to error
+00001038  60EA                      37          BRA         SEARCHLOOP      * Restart Loop if A) Not found B) not the end
+0000103A                            38  FOUND  
+0000103A  21CC 10F0                 39          MOVE.L      A4,Addr1        * Update Variable Addr1 to Address that was successfully found
+0000103E  6000 000E                 40          BRA         CONTINUE        * Jump to CONTINUE
+00001042                            41  ERROR
+00001042  21FC 00006000 10F0        42          MOVE.L      #$6000, Addr1   * 'Error Code' to insert $6000 into Addr1
+0000104A  6000 0002                 43          BRA         CONTINUE        * Jump to CONTINUE
+0000104E                            44  CONTINUE
+0000104E  2878 10F0                 45          MOVEA.L     Addr1, A4       * Update A4 with the Address of Addr1 
+00001052  4241                      46          CLR.W       D1              * Clear out D1 to Zero, so it can be used to count down properly
+00001054  4243                      47          CLR.W       D3              * Clear out D3 word, need to Add BYTE but store in WORD. 
+00001056                            48  ADDLOOP
+00001056  141C                      49          MOVE.B      (A4)+, D2       * Move the Byte value in A4 to D2, than increment A4
+00001058  D578 10F4                 50          ADD.W       D2, Addsum      * Add the current Byte in D2 to Addsum
+0000105C  6500 000E                 51          BCS         CARRY           * If Addsum exceeds 4 Bytes (Word). BCS (branch on carry CCR) to Carry
+00001060  5241                      52          ADD.W       #1, D1          * Add 1 to D1, used to count the 'loops'
+00001062  B27C 00FF                 53          CMP.W       #255, D1        * Compare 255 to D1, used to see if D1 is greater than 255
+00001066  6E00 000C                 54          BGT         FINISH          * If D1 is greater than 255, finish the program
+0000106A  60EA                      55          BRA         ADDLOOP         * D1 is still less than 255, loop again
+0000106C                            56  CARRY
+0000106C  31FC 0001 10F8            57          MOVE.W      #1, CarryBit    * Assign 1 to Carrybit, to represent CCR carrybit
+00001072  60E2                      58          BRA         ADDLOOP         * Jump back to ADDLOOP
+00001074                            59  FINISH
+00001074                            60  *-------Display Address----------------------------------------------
+00001074  43F9 000010BC             61          LEA         AddOut, A1      * Move AddOut into A1 for display
+0000107A  103C 000E                 62          MOVE.B      #14, D0         * Move (Task)14 into D0 for Trap 15
+0000107E  4E4F                      63          TRAP        #15             * Display contents of A1
+00001080  2278 10F0                 64          MOVEA.L     Addr1, A1       * Move Address of Addr1 ($6553) into A1
+00001084  3209                      65          MOVE.W      A1, D1          * Move Address of A1 into D1 for display
+00001086  103C 0003                 66          MOVE.B      #3, D0          * Move (Task)3[display D1 in decimal] into D0 for Trap 15
+0000108A  4E4F                      67          TRAP        #15             * Display contents of D1
+0000108C                            68  *-------Display Sum of Memory-----------------------------------------       
+0000108C  43F9 000010C6             69          LEA         SumOut, A1      * Move SumOut into A1 for display
+00001092  103C 000E                 70          MOVE.B      #14, D0         * Move (Task)14 into D0 for Trap 15
+00001096  4E4F                      71          TRAP        #15             * Display contents of A1
+00001098  3238 10F4                 72          MOVE.W      Addsum, D1      * Move Addsum into D1
+0000109C  103C 0003                 73          MOVE.B      #3, D0          * Move (Task)3[Display D1 in decimal] into D0 for Trap 15
+000010A0  4E4F                      74          TRAP        #15             * Display contents of D1, in decimal (Task 3)
+000010A2                            75  *-------Display Carry Bit---------------------------------------------    
+000010A2  43F9 000010D5             76          LEA         CarOut, A1      * Move CarOut into A1 for display
+000010A8  103C 000E                 77          MOVE.B      #14, D0         * Move (Task)14 into D0 for Trap 15
+000010AC  4E4F                      78          TRAP        #15             * Display contents of A1
+000010AE  3238 10F8                 79          MOVE.W      CarryBit, D1    * Move CarryBit into D1
+000010B2  103C 0003                 80          MOVE.B      #3, D0          * Move (Task)3[Display D1 in decimal] into D0 for Trap 15
+000010B6  4E4F                      81          TRAP        #15             * Display contents of D1, in decimal (Task 3)     
+000010B8                            82  
+000010B8  FFFF FFFF                 83      SIMHALT             ; halt simulator
+000010BC  =0000000D                 84  CR      EQU $0D             ;ASCII code for Carriage Return
+000010BC  =0000000A                 85  LF      EQU $0A             ;ASCII code for Line Feed
+000010BC= 41 64 64 72 65 73 ...     86  AddOut  DC.B 'Address: ',0
+000010C6= 0A 0D 53 75 6D 20 ...     87  SumOut  DC.B LF, CR,'Sum of 256: ',0
+000010D5= 0A 0D 43 61 72 72 ...     88  CarOut  DC.B LF, CR,'Carry  Bit: ',0
+000010E4                            89  
+000010E4                            90      END    START        ; last line of source
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ADDLOOP             1056
+ADDOUT              10BC
+ADDR1               10F0
+ADDSUM              10F4
+CAROUT              10D5
+CARRY               106C
+CARRYBIT            10F8
+COMPA               A000
+CONTINUE            104E
+CR                  D
+ENDA                8000
+ERROR               1042
+FINISH              1074
+FOUND               103A
+LF                  A
+NUMLOC              6553
+NUMTO               7
+SEARCHLOOP          1024
+STARA               6000
+START               1000
+SUMOUT              10C6

@@ -1,0 +1,15 @@
+Q5. Decode a floating point number. (5 points)
+
+Write a program in 68K assembly code to decipher IEEE 32-bit floating point hexadecimal representation to sign bit, exponent bit, and mantissa bits. Program specifications follow:
+
+    1. Your program should start at the memory location $400.
+    2. The program should print the instruction in the output window to get a user input: "Please enter IEEE 32-bit floating point number in hexadecimal":
+    3. User Input should be in IEEE 32-bit floating point number Hexadecimal format.
+    4. After getting the user input, save the number in the memory address right after your program code.
+    5. Then print out the following information to the output window: Sign bit: ("+" or "-"), Exponent: (in decimal) and Mantissa: (in decimal). For example, if the user input is :C0680000, then the memory should have the data: C0680000 in the address right after your program cod, and then the output window shows:
+
+    Sign bit: - 
+
+    Exponent:128
+
+    Mantissa: 13

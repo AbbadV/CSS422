@@ -1,0 +1,117 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.15.04
+Created On: 4/22/2016 5:25:42 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Description: Gets hex user input digits, coverts them to
+00000000                             3  *              the corresponding numerical value, and then
+00000000                             4  *              converts the value into decimal digits.
+00000000                             5  *              - No error checking.
+00000000                             6  *              - Three hex digits max.
+00000000                             7  *-----------------------------------------------------------
+00001000                             8          ORG     $1000      ; Start of code memory.
+00001000  4EB9 00001024              9  START:  JSR     PROMPT     ; Display an indication to enter hex digits in window.
+00001006  4EB9 00001032             10          JSR     GETCHR     ; Start a loop to wait for and read hex digits.
+0000100C  4EB9 00001070             11          JSR     DETVAL     ; Determine the value of all the digits interpreted as a single value.
+00001012  4EB9 0000108E             12          JSR     TODEC      ; Convert to decimal characters.
+00001018  4EB9 000010BE             13          JSR     PRTDEC     ; Display the decimal digits to the screen.
+0000101E  4EF9 000010D0             14          JMP     FIN
+00001024                            15     
+00001024  43F9 00002020             16  PROMPT: LEA     STROUT, A1 ; Load the user prompt address into A1.
+0000102A  103C 000E                 17          MOVE.B  #14, D0    ; Select subroutine to display a string to user.
+0000102E  4E4F                      18          TRAP    #15        ; Start the subroutine to display the prompt.
+00001030  4E75                      19          RTS
+00001032                            20     
+00001032  43F9 00002000             21  GETCHR: LEA     INPUT, A1  ; Store the address to write the results to in A1.
+00001038  143C 0000                 22          MOVE.B  #0, D2     ; Count the number of digits processed.
+0000103C  303C 0005                 23  NXTCHR: MOVE    #5, D0     ; Select the subroutine to read a character from the keyboard.
+00001040  4E4F                      24          TRAP    #15        ; Start the character input subroutine.
+00001042  B23C 000D                 25          CMP.B   #13, D1    ; The character is placed into the LSB of D1.
+00001046  6700 000C                 26          BEQ     GCDONE     ; End if the <Return> key was pressed.
+0000104A  4EB9 00001056             27          JSR     HX2BIN     ; Jump to the subroutine to check and convert hex digits.
+00001050  4EF8 103C                 28          JMP     NXTCHR     ; Read the next character.
+00001054  4E75                      29  GCDONE: RTS
+00001056                            30     
+00001056  B23C 0039                 31  HX2BIN: CMP.B   #57, D1    ; See if the digit is in the range or 0-9 or a-f.
+0000105A  6F0A                      32          BLE.B   LTE9       ; If the difference is less than or equal to 0, it's 0-9
+0000105C  0401 0057                 33          SUB.B   #87, D1    ; 'a' is decimal 97, subtract 87 for decimal values a-f.
+00001060  4EF9 0000106A             34          JMP     STORE      ;
+00001066  0401 0030                 35  LTE9:   SUB.B   #48, D1    ; '0' is decimal 48, subtract 48 for decimal values 0-9.
+0000106A  12C1                      36  STORE:  MOVE.B  D1,(A1)+   ; Write the converted value to memory starting at $2000.
+0000106C  5242                      37          ADD     #1, D2     ; Increment the count of hex digits read.
+0000106E  4E75                      38          RTS                ; We've completed this character, see if there's more to do.
+00001070                            39     
+00001070  7600                      40  DETVAL: MOVE.L  #0, D3     ; Use D3 to hold the total value.
+00001072  7810                      41          MOVE.L  #16, D4    ; Use D4 to multiply by 16.
+00001074  1621                      42          MOVE.B  -(A1),D3   ; Get the least significant byte.
+00001076  5302                      43  NXTDIG: SUB.B   #1, D2     ; Decrement the counter by one.
+00001078  B43C 0000                 44          CMP.B   #0, D2     ; See if there are any more digits to process.
+0000107C  6700 000E                 45          BEQ     DVDONE
+00001080  1A21                      46          MOVE.B  -(A1),D5   ; Get the next hex digit.
+00001082  CAC4                      47          MULU    D4, D5     ; Multiply it by the power of 16 corresponding to the digit position.
+00001084  D685                      48          ADD.L   D5, D3     ; Total the current digit with the sum so far.
+00001086  C8FC 0010                 49          MULU    #16, D4    ; Increase the hex digit multiplying power.
+0000108A  60EA                      50          BRA     NXTDIG     ; See if there are any more digits to process.
+0000108C  4E75                      51  DVDONE: RTS
+0000108E                            52  
+0000108E  43F9 00002010             53  TODEC:  LEA     DECHRS, A1 ;
+00001094  7A00                      54          MOVE.L  #0, D5     ; Our counter for decimal digits.
+00001096  3803                      55          MOVE    D3, D4     ; Make a copy of the total value.
+00001098  3204                      56  NXTDEC: MOVE    D4, D1     ;   
+0000109A  B8BC 00000000             57          CMP.L   #0, D4     ; Stop when there are no more digits left to process.
+000010A0  6F00 001A                 58          BLE     TDDONE     ;
+000010A4  88FC 000A                 59          DIVU    #10, D4
+000010A8  C8FC 000A                 60          MULU    #10, D4
+000010AC  9244                      61          SUB.W   D4, D1     ;
+000010AE  0641 0030                 62          ADD.W   #48, D1    ; Convert the value to the corresponding character.
+000010B2  12C1                      63          MOVE.B  D1,(A1)+   ; Store the decimal character.
+000010B4  88FC 000A                 64          DIVU    #10, D4    ; Find the next decimal digit.
+000010B8  5245                      65          ADD     #1, D5     ; Increment the decimal digit counter.
+000010BA  60DC                      66          BRA     NXTDEC
+000010BC  4E75                      67  TDDONE: RTS
+000010BE                            68  
+000010BE  1221                      69  PRTDEC: MOVE.B  -(A1),D1   ; Get a decimal character.
+000010C0  103C 0006                 70          MOVE.B  #6, D0     ; Set up the print character to output subroutine.
+000010C4  4E4F                      71          TRAP    #15        ; Print it.
+000010C6  5305                      72          SUB.B   #1, D5     ; Decrement the counter.
+000010C8  BA3C 0000                 73          CMP.B   #0, D5     ; See if we're done.
+000010CC  66F0                      74          BNE     PRTDEC     ; If not, process the next character.
+000010CE  4E75                      75          RTS
+000010D0                            76        
+000010D0  103C 0009                 77  FIN:    MOVE.B  #9,D0      ; This is the code for halting the simulator.
+000010D4  4E4F                      78          TRAP     #15       ; Halt the simulator. TRAP calls the O/S.
+000010D6                            79  
+000010D6                            80  * Variables and Strings
+00002000                            81          ORG     $2000      ; Start of data memory.
+00002000                            82  INPUT:  DS.B    16         ; Converted values are written here.
+00002010                            83  DECHRS: DS.B    16         ; Decimal character representation of number.
+00002020= 49 6E 70 75 74 20 ...     84  STROUT: DC.B    'Input Hex Digits > ',0  ; Text for user prompt.
+00002034                            85  
+00002034                            86          END     START      ; End of program.   
+
+No errors detected
+No warnings generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+DECHRS              2010
+DETVAL              1070
+DVDONE              108C
+FIN                 10D0
+GCDONE              1054
+GETCHR              1032
+HX2BIN              1056
+INPUT               2000
+LTE9                1066
+NXTCHR              103C
+NXTDEC              1098
+NXTDIG              1076
+PROMPT              1024
+PRTDEC              10BE
+START               1000
+STORE               106A
+STROUT              2020
+TDDONE              10BC
+TODEC               108E
